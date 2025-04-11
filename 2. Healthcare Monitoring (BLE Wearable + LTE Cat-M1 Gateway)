@@ -1,0 +1,17 @@
+from bleak import BleakClient
+import requests
+
+BLE_ADDRESS = "XX:XX:XX:XX:XX:XX"
+
+async def monitor_ble():
+    async with BleakClient(BLE_ADDRESS) as client:
+        def callback(sender, data):
+            heart_rate = float(data.decode())
+            print(f"Heart Rate: {heart_rate}")
+            send_to_cloud(heart_rate)
+
+        await client.start_notify(CHARACTERISTIC_UUID, callback)
+        await asyncio.sleep(60 * 60)
+
+def send_to_cloud(heart_rate):
+    requests.post("https://your-server/api/health", json={"hr": heart_rate})
