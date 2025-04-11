@@ -1,0 +1,36 @@
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <BLEUtils.h>
+#include <BLE2902.h>
+
+BLECharacteristic *pCharacteristic;
+bool deviceConnected = false;
+float heartRate = 72.3;
+
+void setup() {
+  BLEDevice::init("HeartSensor");
+  BLEServer *pServer = BLEDevice::createServer();
+  BLEService *pService = pServer->createService(SERVICE_UUID);
+
+  pCharacteristic = pService->createCharacteristic(
+                      CHARACTERISTIC_UUID,
+                      BLECharacteristic::PROPERTY_NOTIFY
+                    );
+
+  pCharacteristic->addDescriptor(new BLE2902());
+  pService->start();
+
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->start();
+}
+
+void loop() {
+  if (deviceConnected) {
+    heartRate = getHeartRate();  // Replace with real sensor code
+    char buffer[8];
+    dtostrf(heartRate, 4, 1, buffer);
+    pCharacteristic->setValue(buffer);
+    pCharacteristic->notify();
+  }
+  delay(1000);
+}
