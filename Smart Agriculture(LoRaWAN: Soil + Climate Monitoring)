@@ -1,0 +1,27 @@
+#include <LoRa.h>
+#include <DHT.h>
+
+#define DHTPIN 5
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+
+int soilMoisturePin = A0;
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+  LoRa.begin(915E6); // Use your region's frequency
+}
+
+void loop() {
+  float temp = dht.readTemperature();
+  float humidity = dht.readHumidity();
+  int soilMoisture = analogRead(soilMoisturePin);
+
+  String payload = String(temp) + "," + String(humidity) + "," + String(soilMoisture);
+  LoRa.beginPacket();
+  LoRa.print(payload);
+  LoRa.endPacket();
+
+  delay(1800000); // Send every 30 min
+}
